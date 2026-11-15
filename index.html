@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123c68">
+  <meta name="description" content="Interfaz sencilla para evaluar exposiciones de trabajos finales por grupo e integrante.">
+  <title>Evaluador de exposiciones · UNAN Managua</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172536;
+      --muted: #667587;
+      --blue: #123c68;
+      --blue-2: #1d5c91;
+      --pale: #eef4f8;
+      --line: #d8e1e8;
+      --surface: #fff;
+      --green: #176b4d;
+      --green-pale: #e5f4ed;
+      --amber: #8c5a00;
+      --amber-pale: #fff3d7;
+      --red: #a33232;
+      --radius: 14px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7f9; color: var(--ink); line-height: 1.45; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .topbar { background: var(--blue); color: white; padding: 15px 16px; }
+    .topbar-inner, main, footer { width: min(100%, 760px); margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 750; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #ffffff88; border-radius: 10px; font-size: 12px; letter-spacing: .04em; }
+    .brand small { display: block; margin-top: 1px; font-size: 12px; font-weight: 500; opacity: .83; }
+    main { padding: 20px 14px 36px; }
+    h1 { margin: 0 0 6px; font-size: clamp(23px, 6vw, 30px); line-height: 1.15; }
+    h2 { margin: 0; font-size: 21px; line-height: 1.2; }
+    h3 { margin: 0; font-size: 17px; }
+    p { margin: 7px 0; }
+    .muted, .hint { color: var(--muted); }
+    .muted { font-size: 14px; }
+    .hint { font-size: 12px; }
+    .page-heading { display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 12px; margin: 4px 0 18px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 16px 0 21px; }
+    .stat { padding: 12px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+    .stat strong { display: block; color: var(--blue); font-size: 22px; line-height: 1.1; }
+    .stat span { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; line-height: 1.2; }
+    .section-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 23px 0 10px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 15px; box-shadow: 0 2px 8px #152a3b08; }
+    .stack { display: grid; gap: 10px; }
+    .group-head, .member-row, .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .group-head { align-items: start; }
+    .group-head > div:first-child { min-width: 0; }
+    .group-head h3 { overflow-wrap: anywhere; }
+    .group-work { margin-top: 4px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+    .pill { flex: none; display: inline-flex; align-items: center; padding: 5px 9px; border-radius: 999px; background: var(--amber-pale); color: var(--amber); font-size: 11px; font-weight: 700; }
+    .pill.done { background: var(--green-pale); color: var(--green); }
+    .progress-line { height: 7px; margin: 13px 0 8px; background: #e8edf1; border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--blue-2); border-radius: inherit; }
+    .group-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; }
+    .button { min-height: 44px; border: 0; border-radius: 11px; padding: 10px 15px; font-weight: 720; }
+    .button.primary { background: var(--blue); color: white; }
+    .button.primary:hover { background: #0b3155; }
+    .button.secondary { background: #e8f0f6; color: var(--blue); }
+    .button.ghost { background: transparent; color: var(--blue); border: 1px solid var(--line); }
+    .button.danger { color: var(--red); background: #fff1f1; }
+    .button:disabled { opacity: .48; cursor: not-allowed; }
+    .button.small { min-height: 38px; padding: 8px 12px; font-size: 13px; }
+    .button.full { width: 100%; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .empty { text-align: center; padding: 27px 17px; }
+    .empty p { color: var(--muted); }
+    .form-card { padding: 16px; }
+    .field { display: grid; gap: 6px; margin: 13px 0; }
+    .field label, .criterion label { font-weight: 700; font-size: 14px; }
+    input[type="text"], textarea, input[type="number"] { width: 100%; border: 1px solid #bdcbd7; border-radius: 10px; color: var(--ink); background: white; padding: 12px; outline: none; }
+    input:focus, textarea:focus { border-color: var(--blue-2); box-shadow: 0 0 0 3px #1d5c9122; }
+    textarea { resize: vertical; min-height: 155px; }
+    .criteria-note { background: var(--pale); border-radius: 10px; padding: 10px 12px; color: #354b60; font-size: 13px; }
+    .member-row { padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .member-row:last-child { border-bottom: 0; }
+    .member-name { min-width: 0; font-weight: 650; overflow-wrap: anywhere; }
+    .member-meta { color: var(--muted); font-size: 12px; }
+    .score-big { display: grid; place-items: center; min-height: 102px; margin: 14px 0; border: 1px solid var(--line); border-radius: 13px; background: var(--pale); text-align: center; }
+    .score-big strong { display: block; color: var(--blue); font-size: 34px; line-height: 1; }
+    .score-big span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .criterion { display: grid; grid-template-columns: minmax(0, 1fr) 104px; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .criterion:last-child { border-bottom: 0; }
+    .criterion small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    input[type="number"] { min-height: 48px; padding: 9px; text-align: center; font-weight: 750; font-size: 18px; }
+    .eval-actions { position: sticky; bottom: 0; z-index: 2; display: grid; grid-template-columns: 1fr; gap: 8px; margin: 12px -2px -2px; padding: 12px 2px calc(10px + env(safe-area-inset-bottom)); background: #f4f7f9ed; backdrop-filter: blur(8px); }
+    .status-box { margin: 12px 0; padding: 11px 12px; border-radius: 10px; font-size: 13px; }
+    .status-box.info { background: var(--pale); color: #344b61; }
+    .status-box.success { background: var(--green-pale); color: var(--green); }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 7px; }
+    footer { padding: 0 14px 22px; color: var(--muted); font-size: 11px; }
+    .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 5; width: max-content; max-width: calc(100% - 28px); transform: translate(-50%, 18px); opacity: 0; padding: 11px 15px; border-radius: 10px; background: #17334c; color: white; font-size: 13px; pointer-events: none; transition: .18s ease; }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+    .hide { display: none !important; }
+    @media (min-width: 560px) {
+      main { padding: 25px 20px 42px; }
+      .stats { gap: 12px; }
+      .stat { padding: 15px; }
+      .eval-actions { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner brand">
+      <div class="brand-mark" aria-hidden="true">UNAN</div>
+      <div>Evaluador de exposiciones<small>Trabajos finales · Managua</small></div>
+    </div>
+  </header>
+  <main id="app" aria-live="polite"></main>
+  <footer>La información se guarda en este navegador. Descarga el respaldo CSV al terminar para conservar una copia.</footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const KEY = 'unan-managua-evaluador-v1';
+      const CRITERIA = [
+        { name: 'Dominio del tema', help: 'Comprensión y explicación de los conceptos centrales.' },
+        { name: 'Organización y claridad', help: 'Orden de las ideas y conexión entre las partes.' },
+        { name: 'Análisis y argumentación', help: 'Calidad del razonamiento y sustento de las conclusiones.' },
+        { name: 'Evidencias y aplicación', help: 'Uso de fuentes, datos, ejemplos o propuesta aplicada.' },
+        { name: 'Comunicación y aporte individual', help: 'Exposición, respuesta a preguntas y participación propia.' }
+      ];
+      let db = load();
+      let view = { name: 'home', groupId: null, memberId: null };
+      let toastTimer;
+      const app = document.getElementById('app');
+
+      function load() {
+        try {
+          const value = JSON.parse(localStorage.getItem(KEY) || '{"version":1,"groups":[]}');
+          return value && Array.isArray(value.groups) ? value : { version: 1, groups: [] };
+        } catch { return { version: 1, groups: [] }; }
+      }
+      function save() {
+        try {
+          localStorage.setItem(KEY, JSON.stringify(db));
+          return true;
+        } catch {
+          notify('No se pudo guardar. Revisa el espacio del navegador.');
+          return false;
+        }
+      }
+      function id() { return (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`); }
+      function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]);
+      }
+      function getGroup(groupId) { return db.groups.find(g => g.id === groupId); }
+      function getMember(group, memberId) { return group?.members.find(m => m.id === memberId); }
+      function evaluated(member) { return Boolean(member.evaluatedAt) && Array.isArray(member.scores) && member.scores.length === CRITERIA.length && member.scores.every(n => Number.isFinite(Number(n)) && n !== null && n !== ''); }
+      function scoreAverage(scores) {
+        if (!Array.isArray(scores) || scores.length !== CRITERIA.length || scores.some(n => n === null || n === '' || !Number.isFinite(Number(n)))) return null;
+        return scores.reduce((sum, n) => sum + Number(n), 0) / scores.length;
+      }
+      function groupAverage(group) {
+        const values = group.members.filter(evaluated).map(m => scoreAverage(m.scores)).filter(n => n !== null);
+        return values.length ? values.reduce((a, b) => a + b, 0) / values.length : null;
+      }
+      function fmtScore(value) { return value === null ? '—' : Number(value).toLocaleString('es-NI', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); }
+      function fmtDate(value) {
+        if (!value) return '—';
+        return new Intl.DateTimeFormat('es-NI', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
+      }
+      function notify(text) {
+        const el = document.getElementById('toast');
+        el.textContent = text;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+      }
+      function progress(group) {
+        const done = group.members.filter(evaluated).length;
+        return { done, total: group.members.length, pct: group.members.length ? Math.round(done / group.members.length * 100) : 0 };
+      }
+      function groupCard(group) {
+        const p = progress(group);
+        const isDone = group.status === 'completed';
+        const average = groupAverage(group);
+        return `<article class="card">
+          <div class="group-head"><div><h3>${esc(group.name)}</h3><div class="group-work">${esc(group.workTitle || 'Trabajo final')}</div></div><span class="pill ${isDone ? 'done' : ''}">${isDone ? 'Finalizado' : 'En proceso'}</span></div>
+          <div class="progress-line" aria-label="${p.done} de ${p.total} integrantes evaluados"><div class="progress-fill" style="width:${p.pct}%"></div></div>
+          <div class="group-foot"><span class="muted">${p.done}/${p.total} integrantes · Promedio ${fmtScore(average)}</span><button class="button secondary small" data-action="open-group" data-id="${esc(group.id)}">${isDone ? 'Ver resumen' : 'Continuar'}</button></div>
+        </article>`;
+      }
+      function renderHome() {
+        const groups = [...db.groups].sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        const completeGroups = groups.filter(g => g.status === 'completed').length;
+        const completedStudents = groups.flatMap(g => g.members.filter(evaluated).map(m => scoreAverage(m.scores))).filter(n => n !== null);
+        const overall = completedStudents.length ? completedStudents.reduce((a,b) => a+b, 0) / completedStudents.length : null;
+        app.innerHTML = `<div class="page-heading"><div><h1>Evaluación de trabajos finales</h1><p class="muted">Registra el grupo y califica a cada integrante con cinco criterios.</p></div><button class="button primary" data-action="new-group">+ Nuevo grupo</button></div>
+          <div class="stats">
+            <div class="stat"><strong>${completeGroups}</strong><span>Grupos finalizados</span></div>
+            <div class="stat"><strong>${completedStudents.length}</strong><span>Integrantes evaluados</span></div>
+            <div class="stat"><strong>${fmtScore(overall)}</strong><span>Promedio general / 100</span></div>
+          </div>
+          <div class="section-title"><h2>Resumen de grupos</h2><div class="toolbar"><button class="button ghost small" data-action="export-csv" ${groups.length ? '' : 'disabled'}>Descargar CSV</button><button class="button ghost small" data-action="export-json" ${groups.length ? '' : 'disabled'}>Respaldo JSON</button></div></div>
+          <div class="stack">${groups.length ? groups.map(groupCard).join('') : `<div class="card empty"><h3>Aún no hay grupos</h3><p>Crea el primero y empieza a evaluar las exposiciones.</p><button class="button primary" data-action="new-group">Evaluar nuevo grupo</button></div>`}</div>
+          <div class="status-box info">Puntaje de 0 a 100 por criterio. El resultado individual es el promedio simple de los cinco criterios. Los datos permanecen en este navegador.</div>`;
+      }
+      function renderNewGroup() {
+        app.innerHTML = `<div class="page-heading"><div><h1>Nuevo grupo</h1><p class="muted">Escribe cada nombre en una línea; podrás editar la lista antes de empezar.</p></div><button class="button ghost" data-action="home">Volver</button></div>
+          <form id="new-group-form" class="card form-card">
+            <div class="field"><label for="group-name">Nombre del grupo *</label><input id="group-name" name="groupName" type="text" required maxlength="100" placeholder="Ej.: Grupo 1"></div>
+            <div class="field"><label for="work-title">Nombre del trabajo final</label><input id="work-title" name="workTitle" type="text" maxlength="160" placeholder="Tema o título de la investigación"></div>
+            <div class="field"><label for="members">Integrantes *</label><textarea id="members" name="members" required placeholder="Un integrante por línea&#10;Nombre Apellido&#10;Nombre Apellido"></textarea><span class="hint">Se creará una evaluación individual para cada nombre.</span></div>
+            <button class="button primary full" type="submit">Guardar grupo y evaluar</button>
+          </form>`;
+      }
+      function renderGroup(group) {
+        const p = progress(group);
+        const average = groupAverage(group);
+        const isDone = group.status === 'completed';
+        app.innerHTML = `<div class="page-heading"><div><button class="button ghost small" data-action="home">← Inicio</button><h1 style="margin-top:12px">${esc(group.name)}</h1><p class="muted">${esc(group.workTitle || 'Trabajo final')} · Creado ${fmtDate(group.createdAt)}</p></div><span class="pill ${isDone ? 'done' : ''}">${isDone ? 'Finalizado' : 'En proceso'}</span></div>
+          <div class="stats"><div class="stat"><strong>${p.done}/${p.total}</strong><span>Integrantes evaluados</span></div><div class="stat"><strong>${fmtScore(average)}</strong><span>Promedio del grupo</span></div><div class="stat"><strong>/ 100</strong><span>Escala individual</span></div></div>
+          <div class="section-title"><h2>Integrantes</h2><button class="button ghost small" data-action="add-members" data-id="${esc(group.id)}">+ Agregar</button></div>
+          <div class="card">${group.members.map(m => {
+            const done = evaluated(m);
+            return `<div class="member-row"><div><div class="member-name">${esc(m.name)}</div><div class="member-meta">${done ? `Puntaje: ${fmtScore(scoreAverage(m.scores))}/100` : 'Pendiente de evaluación'}</div></div><button class="button secondary small" data-action="evaluate-member" data-group="${esc(group.id)}" data-member="${esc(m.id)}">${done ? 'Editar' : 'Evaluar'}</button></div>`;
+          }).join('')}</div>
+          ${isDone ? `<div class="status-box success">Evaluación finalizada el ${fmtDate(group.finishedAt)}. Puedes editar puntajes; al hacerlo, el grupo volverá a estado “En proceso”.</div>` : `<div class="status-box info">${p.done === p.total ? 'Todas las evaluaciones están listas.' : `Faltan ${p.total-p.done} integrante(s) por evaluar.`} Finaliza el grupo cuando hayas revisado todos los puntajes.</div>`}
+          <div class="eval-actions"><button class="button primary" data-action="finalize-group" data-id="${esc(group.id)}" ${p.done === p.total && p.total > 0 ? '' : 'disabled'}>${isDone ? 'Grupo finalizado' : 'Finalizar grupo'}</button><button class="button ghost" data-action="export-group-csv" data-id="${esc(group.id)}">Descargar este grupo</button></div>`;
+      }
+      function renderMember(group, member) {
+        const ix = group.members.findIndex(m => m.id === member.id);
+        app.innerHTML = `<div class="page-heading"><div><button class="button ghost small" data-action="open-group" data-id="${esc(group.id)}">← ${esc(group.name)}</button><h1 style="margin-top:12px">Evaluar integrante</h1><p class="muted">Integrante ${ix+1} de ${group.members.length}</p></div></div>
+          <form id="member-form" class="card form-card" data-group="${esc(group.id)}" data-member="${esc(member.id)}">
+            <h2>${esc(member.name)}</h2><p class="muted">${esc(group.workTitle || 'Trabajo final')}</p>
+            <div class="score-big"><div><strong id="live-average">${fmtScore(scoreAverage(member.scores))}</strong><span>Puntaje individual · promedio de cinco criterios / 100</span></div></div>
+            <div class="criteria-note">Califica cada variable entre 0 y 100. Puedes usar decimales. El promedio se calcula automáticamente.</div>
+            <div>${CRITERIA.map((c,i) => `<div class="criterion"><div><label for="score-${i}">${i+1}. ${esc(c.name)}</label><small>${esc(c.help)}</small></div><input id="score-${i}" name="score-${i}" class="score-input" type="number" min="0" max="100" step="1" inputmode="decimal" placeholder="0–100" value="${member.scores?.[i] ?? ''}" required aria-label="${esc(c.name)}, puntaje de 0 a 100"></div>`).join('')}</div>
+            <div class="eval-actions"><button class="button primary" type="submit">Guardar evaluación</button><button class="button ghost" type="button" data-action="open-group" data-id="${esc(group.id)}">Guardar y volver al grupo</button></div>
+          </form>`;
+      }
+      function render() {
+        if (view.name === 'new') return renderNewGroup();
+        const group = getGroup(view.groupId);
+        if (view.name === 'group' && group) return renderGroup(group);
+        if (view.name === 'member' && group) {
+          const member = getMember(group, view.memberId);
+          if (member) return renderMember(group, member);
+        }
+        view = { name: 'home', groupId: null, memberId: null };
+        renderHome();
+      }
+      function openGroup(groupId) { view = { name: 'group', groupId, memberId: null }; render(); window.scrollTo(0,0); }
+      function csvCell(value) { return `"${String(value ?? '').replace(/"/g, '""')}"`; }
+      function exportCsv(groups, filename) {
+        const headers = ['Grupo','Trabajo final','Estado','Integrante',...CRITERIA.map(c => c.name),'Promedio individual','Fecha de evaluación'];
+        const rows = groups.flatMap(g => g.members.map(m => [g.name,g.workTitle,g.status === 'completed' ? 'Finalizado' : 'En proceso',m.name,...(m.scores || Array(5).fill('')),scoreAverage(m.scores) ?? '',m.evaluatedAt || '']));
+        const csv = '\uFEFF' + [headers,...rows].map(row => row.map(csvCell).join(';')).join('\r\n');
+        download(filename, new Blob([csv], {type:'text/csv;charset=utf-8'}));
+      }
+      function download(filename, blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1200);
+      }
+      function dateStamp() { return new Date().toISOString().slice(0,10); }
+
+      document.addEventListener('click', event => {
+        const button = event.target.closest('[data-action]');
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === 'new-group') { view = { name: 'new', groupId: null, memberId: null }; render(); }
+        if (action === 'home') { view = { name: 'home', groupId: null, memberId: null }; render(); }
+        if (action === 'open-group') openGroup(button.dataset.id);
+        if (action === 'evaluate-member') { view = { name: 'member', groupId: button.dataset.group, memberId: button.dataset.member }; render(); window.scrollTo(0,0); }
+        if (action === 'finalize-group') {
+          const group = getGroup(button.dataset.id);
+          if (!group || !group.members.length || !group.members.every(evaluated)) return;
+          group.status = 'completed'; group.finishedAt = new Date().toISOString(); group.updatedAt = group.finishedAt; save(); notify('Grupo finalizado.'); render();
+        }
+        if (action === 'export-csv') exportCsv(db.groups, `evaluaciones-unan-${dateStamp()}.csv`);
+        if (action === 'export-group-csv') {
+          const group = getGroup(button.dataset.id);
+          if (group) exportCsv([group], `evaluacion-${(group.name || 'grupo').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-')}-${dateStamp()}.csv`);
+        }
+        if (action === 'export-json') {
+          const data = { ...db, exportedAt: new Date().toISOString() };
+          download(`respaldo-evaluaciones-unan-${dateStamp()}.json`, new Blob([JSON.stringify(data,null,2)], {type:'application/json;charset=utf-8'}));
+        }
+        if (action === 'add-members') {
+          const group = getGroup(button.dataset.id);
+          if (!group) return;
+          const text = prompt('Escribe los nombres nuevos, uno por línea:');
+          if (text === null) return;
+          const names = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+          const existing = new Set(group.members.map(m => m.name.trim().toLocaleLowerCase()));
+          const newNames = names.filter(n => !existing.has(n.toLocaleLowerCase()));
+          if (!newNames.length) { notify('No hay nombres nuevos para agregar.'); return; }
+          group.members.push(...newNames.map(name => ({ id:id(), name, scores:Array(5).fill(null), evaluatedAt:null })));
+          group.status = 'in_progress'; group.finishedAt = null; group.updatedAt = new Date().toISOString(); save(); notify(`${newNames.length} integrante(s) agregado(s).`); render();
+        }
+      });
+
+      document.addEventListener('submit', event => {
+        if (event.target.id === 'new-group-form') {
+          event.preventDefault();
+          const form = new FormData(event.target);
+          const groupName = String(form.get('groupName') || '').trim();
+          const workTitle = String(form.get('workTitle') || '').trim();
+          const members = String(form.get('members') || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+          if (!groupName || !members.length) { notify('Completa el grupo y al menos un integrante.'); return; }
+          const now = new Date().toISOString();
+          const group = { id:id(), name:groupName, workTitle, createdAt:now, updatedAt:now, finishedAt:null, status:'in_progress', members:members.map(name => ({ id:id(), name, scores:Array(5).fill(null), evaluatedAt:null })) };
+          db.groups.push(group);
+          if (!save()) { db.groups = db.groups.filter(g => g.id !== group.id); return; }
+          notify('Grupo guardado en este navegador.'); openGroup(group.id);
+        }
+        if (event.target.id === 'member-form') {
+          event.preventDefault();
+          const form = event.target;
+          const group = getGroup(form.dataset.group);
+          const member = getMember(group, form.dataset.member);
+          if (!group || !member) return;
+          const values = CRITERIA.map((_,i) => {
+            const field = form.elements[`score-${i}`];
+            const raw = field.value.trim();
+            const n = raw === '' ? NaN : Number(raw);
+            if (!Number.isFinite(n) || n < 0 || n > 100) { field.setCustomValidity('Ingresa un puntaje entre 0 y 100.'); field.reportValidity(); return null; }
+            field.setCustomValidity(''); return n;
+          });
+          if (values.some(v => v === null)) return;
+          member.scores = values;
+          member.evaluatedAt = new Date().toISOString();
+          group.updatedAt = member.evaluatedAt;
+          if (group.status === 'completed') { group.status = 'in_progress'; group.finishedAt = null; }
+          if (!save()) return;
+          const next = group.members.find(m => !evaluated(m));
+          if (next) {
+            notify('Evaluación guardada. Sigue con el próximo integrante.');
+            view = { name:'member', groupId:group.id, memberId:next.id }; render(); window.scrollTo(0,0);
+          } else {
+            notify('Evaluación guardada. Revisa el resumen y finaliza el grupo.'); openGroup(group.id);
+          }
+        }
+      });
+
+      document.addEventListener('input', event => {
+        if (!event.target.matches('.score-input')) return;
+        const form = event.target.closest('#member-form');
+        const group = getGroup(form.dataset.group);
+        const member = getMember(group, form.dataset.member);
+        const values = CRITERIA.map((_,i) => {
+          const field = form.elements[`score-${i}`];
+          if (!field.value.trim()) return null;
+          const n = Number(field.value);
+          return Number.isFinite(n) && n >= 0 && n <= 100 ? n : null;
+        });
+        if (group && member) {
+          member.scores = values;
+          member.evaluatedAt = null;
+          group.updatedAt = new Date().toISOString();
+          if (group.status === 'completed') { group.status = 'in_progress'; group.finishedAt = null; }
+          save();
+        }
+        const average = values.every(n => n !== null) ? values.reduce((a,b) => a+b,0)/values.length : null;
+        document.getElementById('live-average').textContent = fmtScore(average);
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
+
